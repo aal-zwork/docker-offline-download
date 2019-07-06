@@ -43,6 +43,7 @@ if($verbose) {
 }
 switch ($PSVersionTable.PSVersion.Major) {
     2 { 
+        write-host "CurVersion is not allowed"; exit 
         $PSScriptRoot = ($MyInvocation.MyCommand.Path | Split-Path -Parent)
         function ConvertTo-Json20([object] $item){
             add-type -assembly system.web.extensions
@@ -58,13 +59,11 @@ switch ($PSVersionTable.PSVersion.Major) {
     }
     3 { write-host "CurVersion is not allowed"; exit }
     4 { write-host "CurVersion is not allowed"; exit }
-    5 { 
-        
-    }
+    5 { }
     Default { write-host "CurVersion is not allowed"; exit }
 }
 $currPath = (Get-Item -Path ".\").FullName
-Write-Verbose "currPath:   $currPath"
+Write-Verbose "currPath:  $currPath"
 
 if ($Cstring -eq '') {
     if ($Image -eq '') { usage }
@@ -73,8 +72,7 @@ if ($Cstring -eq '') {
         if ($Tag -ne '') { 
             $Cstring += ":$Tag"
             if ($Digest -ne '') { $Cstring += "@$Digest" }
-        }
-        if ($Digest -ne '') { usage }
+        } else { if ($Digest -ne '') { usage } }
     }
 } else {
     $Cstring_slpit = $Cstring -split '@'
@@ -84,7 +82,7 @@ if ($Cstring -eq '') {
     $Tag = $Cstring_slpit[1]
     
 }
-$tmp = (-not ($Image -match ".*/.*")) -and ($Image = "library/$Image")
+$tmp = ($Image -match ".*/.*") -or ($Image = "library/$Image")
 $ImageFile = $Image -replace '/','_'
 
 Write-Verbose "Cstring:   $Cstring"
@@ -116,7 +114,7 @@ switch ($schemaVersion) {
             if (test-path $imageLayerPath) {
                 write-host "Skip $imageLayerID, allready downloaded"
             } else {
-                write-verbose "imageLayerPath : $imageLayerPath"
+                write-verbose "imageLayerPath: $imageLayerPath"
                 $token = (ConvertFrom-Json (get-webresponce "$authBase/token?service=$authService&scope=repository:$($Image):pull")).token
                 $blob = get-webresponce -url "$registryBase/v2/$Image/blobs/$imageLayerBlobDigest" -headers @{'Authorization' = "Bearer $token"} -file $imageLayerPath
             }
@@ -127,35 +125,3 @@ switch ($schemaVersion) {
 
 $VerbosePreference = $oldverbose
 #return $manifest
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
